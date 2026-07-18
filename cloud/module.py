@@ -19,15 +19,19 @@ except ImportError:  # pragma: no cover - exercised only by standalone test runs
 class XSenseCloudModule(CloudAccountModule):
     """X-Sense account discovery (unofficial, reverse-engineered API).
 
-    Lists the cameras (SSC0A/SSC0B) an X-Sense account knows about for
-    inventory purposes only - there is no persistent stream URL to hand
-    over (X-Sense's live-view URLs are short-lived session tickets, not a
-    static address), so `CloudDevice.manual_stream_uri` is always empty and
-    TBC will not offer "Add as camera" for these entries, exactly like the
-    built-in `ewelink` cloud plugin already does for the same reason. Add a
-    camera manually instead, using the "xsense-camera" module with the
-    listed serial number - see this plugin's README.md.
+    Lists the cameras (SSC0A/SSC0B) an X-Sense account knows about. There is
+    no persistent stream URL to hand over (X-Sense's live view is real
+    WebRTC, negotiated fresh per session - see the "xsense-camera" plugin),
+    so `CloudDevice.manual_stream_uri` is always empty, unlike vendors with a
+    static RTSP address. Instead, each device sets
+    `needs_account_credentials=True`: TBC's "Add as camera" then reuses this
+    same account's already-authenticated email/password (via
+    `account_username_field`/`account_password_field` below) plus the
+    device's serial number, so no manual copy-pasting is needed.
     """
+
+    account_username_field = "email"
+    account_password_field = "password"
 
     account_fields = (
         CloudAccountField(
@@ -61,6 +65,7 @@ class XSenseCloudModule(CloudAccountModule):
                 model=camera.model,
                 manual_stream_uri=None,
                 suggested_module_key="xsense-camera",
+                needs_account_credentials=True,
             )
             for camera in cameras
         ]

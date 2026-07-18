@@ -54,12 +54,15 @@ def _install_fake_tbc_cloud_api() -> None:
         online: bool | None = None
         manual_stream_uri: str | None = None
         suggested_module_key: str = "rtsp_only"
+        needs_account_credentials: bool = False
 
     class _FakeCloudAccountModule:
         key = ""
         label = ""
         description = ""
         account_fields: tuple = ()
+        account_username_field: str | None = None
+        account_password_field: str | None = None
 
         async def test_connection(self, account):
             raise NotImplementedError

@@ -52,7 +52,14 @@ class XSenseCloudModuleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(device.name, "Front Door")
         self.assertEqual(device.model, "SSC0A")
         self.assertIsNone(device.manual_stream_uri)
+        self.assertTrue(device.needs_account_credentials)
         self.assertEqual(device.suggested_module_key, "xsense-camera")
+
+    def test_declares_which_account_fields_hold_reusable_credentials(self):
+        module = XSenseCloudModule()
+
+        self.assertEqual(module.account_username_field, "email")
+        self.assertEqual(module.account_password_field, "password")
 
     async def test_discovery_failure_is_wrapped_as_cloud_connection_error(self):
         module = XSenseCloudModule()
