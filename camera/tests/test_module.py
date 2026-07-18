@@ -37,31 +37,27 @@ class XSenseCameraModuleTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(snapshot.status, "error")
         self.assertIn("bad credentials", snapshot.message)
 
-    async def test_probe_returns_error_for_webrtc_only_camera(self):
+    async def test_probe_registers_credentials_and_starts_the_bridge(self):
         module = XSenseCameraModule()
         fake_client = AsyncMock()
-        fake_client.get_live_stream_url.return_value = None
 
-        with patch("module.XSenseClient", return_value=fake_client):
+        with patch("module.XSenseClient", return_value=fake_client), patch(
+            "module.bridge_server"
+        ) as fake_bridge_server:
+            fake_bridge_server.ensure_started = AsyncMock()
+            fake_bridge_server.stream_url.return_value = "http://127.0.0.1:18734/live/SERIAL123.ts"
+
             snapshot = await module.probe(
                 {"username": "user@example.com", "password": "secret", "host": "SERIAL123"}
             )
 
-        self.assertEqual(snapshot.status, "error")
-        self.assertIn("WebRTC", snapshot.message)
-
-    async def test_probe_returns_stream_uri_for_rtsp_camera(self):
-        module = XSenseCameraModule()
-        fake_client = AsyncMock()
-        fake_client.get_live_stream_url.return_value = "rtsp://stream.example.com/live/SERIAL123"
-
-        with patch("module.XSenseClient", return_value=fake_client):
-            snapshot = await module.probe(
-                {"username": "user@example.com", "password": "secret", "host": "SERIAL123"}
-            )
-
+        fake_client.login.assert_awaited_once()
+        fake_bridge_server.register_credentials.assert_called_once_with(
+            "SERIAL123", "user@example.com", "secret"
+        )
+        fake_bridge_server.ensure_started.assert_awaited_once()
         self.assertEqual(snapshot.status, "ok")
-        self.assertEqual(snapshot.stream_uri, "rtsp://stream.example.com/live/SERIAL123")
+        self.assertEqual(snapshot.stream_uri, "http://127.0.0.1:18734/live/SERIAL123.ts")
         self.assertEqual(snapshot.serial, "SERIAL123")
 
     def test_declares_live_and_recording_capabilities(self):

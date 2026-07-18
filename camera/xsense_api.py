@@ -116,19 +116,20 @@ class XSenseClient:
                 cameras.append(XSenseCamera(serial=serial, name=entry.get("ipcName") or serial, model=model))
         return cameras
 
-    async def get_live_stream_url(self, serial: str) -> str | None:
-        """Start a live-view session and return its URL, or None if unavailable.
+    async def get_webrtc_ticket(self, serial: str) -> dict[str, Any]:
+        """Return a fresh WebRTC signaling ticket for a camera's live view.
 
-        The returned URL is a short-lived session ticket (expires in a few
-        minutes without further activity), not a persistent address - callers
-        that need an ongoing stream must call this again periodically rather
-        than caching the result indefinitely.
+        X-Sense cameras have no pullable stream URL at all (confirmed against
+        the reference implementation) - live view is real WebRTC, and this
+        ticket (signal server, ICE servers, a signed session identity) is
+        what a caller needs to open that WebRTC session. See webrtc_signal.py
+        for how it's used. Each ticket is meant for one live-view session,
+        not cached/reused across sessions.
         """
-        data = await self._addx_call("/device/newstartlive", serialNumber=serial, liveResolution="auto")
+        data = await self._addx_call("/device/getWebrtcTicket", serialNumber=serial)
         if not isinstance(data, dict):
-            return None
-        url = data.get("liveUrl") or data.get("url")
-        return url if isinstance(url, str) and url else None
+            raise XSenseError("X-Sense did not return a WebRTC ticket")
+        return data
 
     # -- internals --
 
