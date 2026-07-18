@@ -99,14 +99,12 @@ class XSenseClient:
         await asyncio.to_thread(self._cognito_login)
 
     async def list_cameras(self) -> list[XSenseCamera]:
-        houses = await self._api_call("102007", utctimestamp="0")
+        houses = await self._list_houses()
         cameras: list[XSenseCamera] = []
-        for house in houses or []:
+        for house in houses:
             house_id = house.get("houseId")
             if not house_id:
                 continue
-            if self._node_type is None:
-                self._node_type = _ipc_node_type(house.get("mqttRegion"))
             stations = await self._api_call("103007", houseId=house_id, utctimestamp="0")
             for entry in (stations or {}).get("cameras") or []:
                 model = str(entry.get("category") or "")
@@ -220,7 +218,28 @@ class XSenseClient:
             )
         return result["reData"]
 
+    async def _list_houses(self) -> list[dict[str, Any]]:
+        """Return this account's houses, resolving self._node_type as a side effect.
+
+        Called both by list_cameras() and (via _register_ipc) by
+        get_webrtc_ticket() - a caller that only ever fetches a ticket for a
+        single already-known serial (bridge_server.py's per-session flow)
+        never calls list_cameras() first, so _node_type must not depend on
+        that having happened; defaulting to "US" for a non-US account
+        produced a real, confirmed "house region and nodeType conflict"
+        IPC-registration failure.
+        """
+        houses = await self._api_call("102007", utctimestamp="0")
+        houses = list(houses or [])
+        if self._node_type is None:
+            for house in houses:
+                self._node_type = _ipc_node_type(house.get("mqttRegion"))
+                break
+        return houses
+
     async def _register_ipc(self) -> dict[str, Any]:
+        if self._node_type is None:
+            await self._list_houses()
         node_type = self._node_type or "US"
         data = {"userName": self._username, "nodeType": node_type, "language": "en"}
         mac = self._calculate_mac(data)
