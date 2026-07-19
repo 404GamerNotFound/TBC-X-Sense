@@ -23,3 +23,11 @@ def test_manifest_declares_live_and_recording_capabilities():
 def test_manifest_entrypoint_file_exists():
     manifest = _manifest()
     assert (_PLUGIN_DIR / manifest["entrypoint"]).is_file()
+
+
+def test_manifest_declares_its_own_pip_requirements():
+    # Lets TBC install "aiortc" etc. on demand instead of every plugin's
+    # dependency having to live in TBC-camera-manager's own requirements.txt
+    # forever - see app/tbc/plugin_requirements.py in the main repo.
+    manifest = _manifest()
+    assert "aiortc" in " ".join(manifest["requirements"])

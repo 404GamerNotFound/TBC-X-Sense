@@ -7,6 +7,7 @@
   "entrypoint": "plugin.py",
   "auth_type": "credentials",
   "verification_support": "not_applicable",
+  "requirements": ["pycognito==2024.5.1", "boto3>=1.43.49,<2", "aiohttp>=3.9,<4"],
   "account_fields": [
     {
       "key": "email",

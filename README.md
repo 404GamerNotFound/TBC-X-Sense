@@ -54,9 +54,10 @@ If you'd rather not depend on reverse-engineered credentials at all, don't insta
 Every other TBC cloud plugin (UniFi Protect, Eufy) hands over a persistent RTSP address that
 TBC can store once and reuse forever. X-Sense cameras have no persistent stream address at all -
 live view is a fresh WebRTC negotiation every time. Rather than pretend there's a simple address
-to import, the cloud plugin here only lists devices (mirroring exactly how the built-in
-`ewelink` cloud plugin already handles vendors with no persistent stream URL - see
-`docs/cloud-accounts.md` in the main repo). Use the listed serial number to add the camera
+to import, the cloud plugin here only lists devices (mirroring exactly how the
+[`TBC-ewelink`](https://github.com/404GamerNotFound/TBC-ewelink) cloud plugin already handles
+vendors with no persistent stream URL - see `docs/cloud-accounts.md` in the main repo). Use the
+listed serial number to add the camera
 manually with the `camera/` module instead, which handles the WebRTC bridging on an ongoing
 basis (see above).
 

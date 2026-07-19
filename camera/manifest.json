@@ -6,5 +6,6 @@
   "description": "X-Sense cameras (SSC0A/SSC0B) via a local WebRTC bridge to the unofficial X-Sense cloud live-view API",
   "entrypoint": "plugin.py",
   "capabilities": ["live", "recording"],
-  "ports": {"onvif": 8000, "http": 80, "rtsp": 554}
+  "ports": {"onvif": 8000, "http": 80, "rtsp": 554},
+  "requirements": ["pycognito==2024.5.1", "boto3>=1.43.49,<2", "aiohttp>=3.9,<4", "aiortc==1.15.0"]
 }
