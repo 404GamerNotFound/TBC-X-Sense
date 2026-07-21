@@ -99,3 +99,7 @@ cd cloud && python3 -m pytest tests/
 Tests mock all network calls - no real X-Sense account is needed to run them. One test
 (`test_webrtc_bridge.py`) does exercise real aiortc SDP-offer generation, but that's local
 codec-capability logic only, not network I/O.
+
+## Independence
+
+This project is independent and is not affiliated with, endorsed by, or sponsored by X-Sense.
